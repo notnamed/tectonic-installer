@@ -101,7 +101,6 @@ pipeline {
           script {
             def err = null
             try {
-              printLogstashAttributes()
               forcefullyCleanWorkspace()
               withDockerContainer(params.builder_image) {
                 ansiColor('xterm') {
@@ -407,12 +406,4 @@ def reportStatusToGithub(status, context) {
       ./tests/jenkins-jobs/scripts/report-status-to-github.sh ${status} ${context}
     """
   }
-}
-//Function used to print environment variables that are used by Logstash as attributes for the log file.
-def printLogstashAttributes() {
-    echo  "Build_Number=" + env.BUILD_NUMBER
-    echo  "JOB_NAME=" + env.JOB_NAME
-    echo  "USER_REQUEST=" +  env.CHANGE_AUTHOR
-    echo  "GIT_TARGET_BRANCH=" + env.CHANGE_TARGET
-    echo  "GIT_PR_NUMBER=" + env.CHANGE_ID
 }
