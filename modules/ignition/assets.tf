@@ -16,6 +16,33 @@ data "template_file" "docker_dropin" {
   template = "${file("${path.module}/resources/dropins/10-dockeropts.conf")}"
 }
 
+data "template_file" "defaultenv" {
+  template = "${file("${path.module}/resources/dropins/10-default-env.conf")}"
+}
+data "template_file" "profileenv" {
+  template = "${file("${path.module}/resources/dropins/profile.env")}"
+}
+
+data "ignition_file" "profileenv" {
+  filesystem = "root"
+  path       = "/etc/profile.env"
+  mode       = 0755
+
+  content {
+    content = "${data.template_file.profileenv.rendered}"
+  }
+}
+
+data "ignition_file" "defaultenv" {
+  filesystem = "root"
+  path       = "/etc/systemd/system.conf.d/10-default-env.conf"
+  mode       = 0644
+
+  content {
+    content = "${data.template_file.defaultenv.rendered}"
+  }
+}
+
 data "ignition_systemd_unit" "docker_dropin" {
   name   = "docker.service"
   enable = true
@@ -36,7 +63,6 @@ data "template_file" "kubelet" {
     cloud_provider_config = "${var.cloud_provider_config != "" ? "--cloud-config=/etc/kubernetes/cloud/config" : ""}"
     cluster_dns_ip        = "${var.kube_dns_service_ip}"
     cni_bin_dir_flag      = "${var.kubelet_cni_bin_dir != "" ? "--cni-bin-dir=${var.kubelet_cni_bin_dir}" : ""}"
-    debug_config          = "${var.kubelet_debug_config}"
     kubeconfig_fetch_cmd  = "${var.kubeconfig_fetch_cmd != "" ? "ExecStartPre=${var.kubeconfig_fetch_cmd}" : ""}"
     node_label            = "${var.kubelet_node_label}"
     node_taints_param     = "${var.kubelet_node_taints != "" ? "--register-with-taints=${var.kubelet_node_taints}" : ""}"
@@ -92,6 +118,20 @@ data "ignition_file" "s3_puller" {
   }
 }
 
+data "template_file" "gcs_puller" {
+  template = "${file("${path.module}/resources/bin/gcs-puller.sh")}"
+}
+
+data "ignition_file" "gcs_puller" {
+  filesystem = "root"
+  path       = "/opt/gcs-puller.sh"
+  mode       = 0755
+
+  content {
+    content = "${data.template_file.gcs_puller.rendered}"
+  }
+}
+
 data "ignition_systemd_unit" "locksmithd" {
   name = "locksmithd.service"
   mask = true
@@ -141,7 +181,7 @@ data "ignition_file" "azure_udev_rules" {
 }
 
 data "template_file" "coreos_metadata" {
-  template = "${file("${path.module}/resources/dropins/10-metadata.conf")}"
+  template = "${file("${path.module}/resources/services/coreos-metadata.service")}"
 
   vars {
     metadata_provider = "${var.metadata_provider}"
