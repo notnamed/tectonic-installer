@@ -14,6 +14,22 @@ output "docker_dropin_rendered" {
   value = "${data.template_file.docker_dropin.rendered}"
 }
 
+output "defaultenv_id" {
+  value = "${data.ignition_systemd_unit.defaultenv.id}"
+}
+
+output "defaultenv_rendered" {
+  value = "${data.template_file.defaultenv.rendered}"
+}
+
+output "profileenv_id" {
+  value = "${data.ignition_file.profileenv.id}"
+}
+
+output "profileenv_rendered" {
+  value = "${data.template_file.profileenv.rendered}"
+}
+
 output "kubelet_service_id" {
   value = "${data.ignition_systemd_unit.kubelet.id}"
 }
